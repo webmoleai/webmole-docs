@@ -1,0 +1,28 @@
+# WebMole AEO Audit — GitHub Actions example
+# Add this to .github/workflows/aeo.yml
+
+name: AEO Audit
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  aeo-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run AEO Audit
+        run: |
+          RESULT=$(curl -s -X POST https://webmole.ai/api/v1/audit \
+            -H "Authorization: Bearer ${{ secrets.WEBMOLE_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"url": "${{ secrets.SITE_URL }}"}')
+
+          SCORE=$(echo $RESULT | jq '.score')
+          echo "AEO Score: $SCORE/100"
+
+          if [ "$SCORE" -lt 70 ]; then
+            echo "::error::AEO score $SCORE is below threshold 70"
+            echo "$RESULT" | jq '.fixSuggestions[] | "\(.impact): \(.instruction)"'
+            exit 1
+          fi
+          echo "AEO check passed with score $SCORE"

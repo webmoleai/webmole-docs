@@ -1,0 +1,158 @@
+{
+  "schema_version": "1.0",
+  "name": "WebMole",
+  "description": "AEO (Answer Engine Optimization) API. Score any URL for AI search readiness, get per-factor analysis, and receive copy-paste fix suggestions. The only self-serve AEO API under $100/mo.",
+  "url": "https://webmole.ai",
+  "contact": "support@webmole.ai",
+  "capabilities": [
+    "aeo_audit",
+    "geo_scoring",
+    "schema_generation",
+    "citation_monitoring",
+    "competitor_comparison"
+  ],
+  "api": {
+    "base_url": "https://webmole.ai/api/v1",
+    "auth": {
+      "type": "bearer",
+      "header": "Authorization",
+      "format": "Bearer wbm_your_api_key",
+      "docs": "https://webmole.ai/docs#authentication"
+    },
+    "endpoints": [
+      {
+        "id": "audit",
+        "name": "AEO Audit",
+        "description": "Score a URL for AEO readiness. Returns score (0-100), 12-factor analysis, and code-level fix suggestions.",
+        "method": "POST",
+        "path": "/audit",
+        "input_schema": {
+          "type": "object",
+          "required": ["url"],
+          "properties": {
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "description": "The URL to audit (must be publicly accessible)"
+            }
+          }
+        },
+        "output_schema": {
+          "type": "object",
+          "properties": {
+            "url": { "type": "string" },
+            "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+            "categories": {
+              "type": "object",
+              "properties": {
+                "answerReadiness": { "type": "integer" },
+                "structure": { "type": "integer" },
+                "authoritySignals": { "type": "integer" },
+                "technicalGEO": { "type": "integer" }
+              }
+            },
+            "factors": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "integer" },
+                  "name": { "type": "string" },
+                  "score": { "type": "integer" },
+                  "max": { "type": "integer" },
+                  "status": { "type": "string", "enum": ["pass", "warn", "fail"] },
+                  "details": { "type": "string" }
+                }
+              }
+            },
+            "fixSuggestions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "factorId": { "type": "integer" },
+                  "factorName": { "type": "string" },
+                  "impact": { "type": "string", "enum": ["High", "Medium", "Low"] },
+                  "instruction": { "type": "string" },
+                  "codeBlock": { "type": "string" }
+                }
+              }
+            },
+            "botAccessibility": {
+              "type": "object",
+              "description": "Per-bot HTTP accessibility check. Detects CDN-layer blocking even when robots.txt allows the bot.",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "status": { "type": "integer" },
+                  "accessible": { "type": "boolean" },
+                  "cdnBlocked": { "type": "boolean" },
+                  "cdn": { "type": "string" }
+                }
+              }
+            },
+            "scannedAt": { "type": "string", "format": "date-time" },
+            "rateLimit": {
+              "type": "object",
+              "properties": {
+                "remaining": { "type": "integer" },
+                "limit": { "type": "integer" },
+                "resetAt": { "type": "string", "format": "date-time" }
+              }
+            }
+          }
+        },
+        "example": {
+          "request": {
+            "method": "POST",
+            "url": "https://webmole.ai/api/v1/audit",
+            "headers": {
+              "Authorization": "Bearer wbm_your_api_key",
+              "Content-Type": "application/json"
+            },
+            "body": { "url": "https://example.com" }
+          },
+          "response": {
+            "url": "https://example.com",
+            "score": 74,
+            "categories": { "answerReadiness": 80, "structure": 70, "authoritySignals": 65, "technicalGEO": 80 },
+            "factors": [
+              {
+                "id": 4,
+                "name": "FAQ Sections",
+                "score": 0,
+                "max": 8,
+                "status": "fail",
+                "details": "No FAQPage schema found."
+              }
+            ],
+            "fixSuggestions": [
+              {
+                "factorId": 4,
+                "factorName": "FAQ Sections",
+                "impact": "High",
+                "instruction": "Add FAQPage schema to your page head.",
+                "codeBlock": "<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"FAQPage\",\"mainEntity\":[{\"@type\":\"Question\",\"name\":\"Your question\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"Your answer\"}}]}</script>"
+              }
+            ],
+            "botAccessibility": {
+              "GPTBot": { "status": 200, "accessible": true, "cdnBlocked": false },
+              "ClaudeBot": { "status": 403, "accessible": false, "cdnBlocked": true, "cdn": "cloudflare" },
+              "PerplexityBot": { "status": 200, "accessible": true, "cdnBlocked": false }
+            },
+            "scannedAt": "2026-03-17T10:00:00.000Z",
+            "rateLimit": { "remaining": 99, "limit": 100, "resetAt": "2026-03-18T00:00:00.000Z" }
+          }
+        }
+      }
+    ]
+  },
+  "rate_limits": {
+    "starter": { "requests_per_day": 100, "price_usd_per_month": 29 },
+    "pro": { "requests_per_day": 500, "price_usd_per_month": 49 },
+    "agency": { "requests_per_day": 2000, "price_usd_per_month": 99 }
+  },
+  "openapi_spec": "https://webmole.ai/api/v1/openapi.json",
+  "documentation": "https://webmole.ai/docs",
+  "llms_txt": "https://webmole.ai/llms.txt"
+}

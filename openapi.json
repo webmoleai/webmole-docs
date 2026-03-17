@@ -1,0 +1,552 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "WebMole AEO Audit API",
+    "description": "Run AEO (Answer Engine Optimization) audits programmatically. Score any public URL for AI citation readiness on a 0–100 scale. Returns per-factor analysis across 12 signals and prioritized fix suggestions with copy-paste code blocks.\n\nUse this API when you need to:\n- Check if a URL is optimized for ChatGPT, Perplexity, Gemini, or Google AI Overviews\n- Get AEO scores for CI/CD pipelines or monitoring dashboards\n- Retrieve structured fix suggestions (JSON-LD, meta tags, robots.txt) for a page\n- Audit competitor URLs for benchmarking\n\nAuthentication: Bearer token (keys start with `wbm_`). Generate a key at https://webmole.ai/dashboard/settings.\n\nRate limits: Starter 100/day, Pro 500/day, Agency 2,000/day. All limits reset at midnight UTC.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "WebMole Support",
+      "email": "support@webmole.ai",
+      "url": "https://webmole.ai/docs"
+    },
+    "termsOfService": "https://webmole.ai/terms",
+    "license": {
+      "name": "Proprietary",
+      "url": "https://webmole.ai/terms"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://webmole.ai",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/api/v1/audit": {
+      "post": {
+        "operationId": "runAudit",
+        "summary": "Run an AEO audit on a URL",
+        "description": "Fetches the target URL, runs 12 AEO/GEO factor checks, and returns a 0–100 score, per-factor analysis, category scores, and prioritized fix suggestions with copy-paste code blocks.\n\nUse this operation when a user asks to:\n- Check AI citation readiness for a page\n- Get their AEO or GEO score\n- Find out why a site isn't appearing in ChatGPT, Perplexity, or Gemini\n- Get fix suggestions (JSON-LD, meta tags, robots.txt updates) for a page\n- Audit a competitor URL\n\nThe audit completes in under 10 seconds for most pages. Private URLs, localhost addresses, and internal IP ranges are rejected.",
+        "tags": ["Audit"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuditRequest"
+              },
+              "examples": {
+                "basic": {
+                  "summary": "Audit a homepage",
+                  "value": {
+                    "url": "https://example.com"
+                  }
+                },
+                "specific_page": {
+                  "summary": "Audit a specific page",
+                  "value": {
+                    "url": "https://example.com/blog/how-to-improve-aeo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Audit completed successfully. Returns score, 12-factor analysis, and fix suggestions.",
+            "headers": {
+              "X-RateLimit-Limit": {
+                "description": "Daily request limit for your plan",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Requests remaining today",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "ISO 8601 timestamp when the rate limit resets (midnight UTC)",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditResponse"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Successful audit with fixes",
+                    "value": {
+                      "url": "https://example.com",
+                      "score": 74,
+                      "categories": {
+                        "answerReadiness": 80,
+                        "structure": 70,
+                        "authoritySignals": 65,
+                        "technicalGEO": 80
+                      },
+                      "factors": [
+                        {
+                          "id": 1,
+                          "name": "Header Hierarchy",
+                          "score": 8,
+                          "max": 10,
+                          "status": "pass",
+                          "details": "H1→H2→H3 structure found, one skipped level detected"
+                        },
+                        {
+                          "id": 7,
+                          "name": "Schema Markup (JSON-LD)",
+                          "score": 10,
+                          "max": 10,
+                          "status": "pass",
+                          "details": "Valid JSON-LD found with @type Organization"
+                        },
+                        {
+                          "id": 8,
+                          "name": "Meta Tags",
+                          "score": 0,
+                          "max": 8,
+                          "status": "fail",
+                          "details": "No meta description found"
+                        }
+                      ],
+                      "fixSuggestions": [
+                        {
+                          "factorId": 8,
+                          "factorName": "Meta Tags",
+                          "impact": "High",
+                          "instruction": "Add a concise meta description (120-160 chars) summarising the page for AI systems and search engines.",
+                          "codeBlock": "<meta name=\"description\" content=\"Your page summary here — keep it to 120-160 characters.\" />"
+                        }
+                      ],
+                      "scannedAt": "2026-03-17T12:00:00.000Z",
+                      "rateLimit": {
+                        "remaining": 99,
+                        "limit": 100,
+                        "resetAt": "2026-03-18T00:00:00.000Z"
+                      }
+                    }
+                  },
+                  "high_score": {
+                    "summary": "Well-optimized page",
+                    "value": {
+                      "url": "https://example.com/optimized-page",
+                      "score": 91,
+                      "categories": {
+                        "answerReadiness": 95,
+                        "structure": 88,
+                        "authoritySignals": 90,
+                        "technicalGEO": 92
+                      },
+                      "factors": [],
+                      "fixSuggestions": [],
+                      "scannedAt": "2026-03-17T12:00:00.000Z",
+                      "rateLimit": {
+                        "remaining": 98,
+                        "limit": 100,
+                        "resetAt": "2026-03-18T00:00:00.000Z"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — invalid URL, malformed body, fetch failure, or fetch timeout.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "invalid_url": {
+                    "summary": "Invalid URL provided",
+                    "value": {
+                      "error": {
+                        "code": "invalid_url",
+                        "message": "\"url\" must be a valid URL (e.g., https://example.com)."
+                      }
+                    }
+                  },
+                  "invalid_body": {
+                    "summary": "Malformed request body",
+                    "value": {
+                      "error": {
+                        "code": "invalid_body",
+                        "message": "Request body must be valid JSON."
+                      }
+                    }
+                  },
+                  "fetch_failed": {
+                    "summary": "Could not reach the URL",
+                    "value": {
+                      "error": {
+                        "code": "fetch_failed",
+                        "message": "Could not fetch URL: HTTP 404."
+                      }
+                    }
+                  },
+                  "fetch_timeout": {
+                    "summary": "URL fetch timed out",
+                    "value": {
+                      "error": {
+                        "code": "fetch_timeout",
+                        "message": "URL fetch timed out after 10 seconds."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — missing or invalid API key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "unauthorized": {
+                    "value": {
+                      "error": {
+                        "code": "unauthorized",
+                        "message": "Invalid or missing API key."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited — daily request limit reached. Check the Retry-After header for the number of seconds until reset.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until the rate limit resets",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "description": "Daily request limit for your plan",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "description": "Always 0 when rate limited",
+                "schema": {
+                  "type": "integer"
+                }
+              },
+              "X-RateLimit-Reset": {
+                "description": "ISO 8601 timestamp when the limit resets",
+                "schema": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "rate_limited": {
+                    "value": {
+                      "error": {
+                        "code": "rate_limited",
+                        "message": "Daily limit of 100 requests reached. Resets at 2026-03-18T00:00:00.000Z."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error — scoring failed. Retry once; contact support if the issue persists.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "score_failed": {
+                    "value": {
+                      "error": {
+                        "code": "score_failed",
+                        "message": "Failed to analyze the page. Please try again."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API key",
+        "description": "API key from WebMole dashboard. Keys start with `wbm_`. Generate at https://webmole.ai/dashboard/settings. Include in every request as: `Authorization: Bearer wbm_your_key`."
+      }
+    },
+    "schemas": {
+      "AuditRequest": {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048,
+            "description": "Fully qualified URL to audit. Must start with https://. Max 2048 characters. Private/internal IPs, localhost, and non-public addresses are rejected.",
+            "example": "https://example.com"
+          }
+        }
+      },
+      "AuditResponse": {
+        "type": "object",
+        "required": ["url", "score", "categories", "factors", "fixSuggestions", "scannedAt", "rateLimit"],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The URL that was audited."
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Overall AEO score from 0 to 100. Below 60 typically means the page is being passed over by AI citation systems. Above 80 indicates strong AI citability."
+          },
+          "categories": {
+            "$ref": "#/components/schemas/CategoryScores"
+          },
+          "factors": {
+            "type": "array",
+            "description": "Results for each of the 12 AEO factors. Each factor returns a score, maximum, status, and details string.",
+            "items": {
+              "$ref": "#/components/schemas/FactorResult"
+            }
+          },
+          "fixSuggestions": {
+            "type": "array",
+            "description": "Prioritized fix suggestions for failing or warning factors. Only includes factors that need attention. Each fix includes an instruction and, where applicable, a codeBlock to paste directly into the site.",
+            "items": {
+              "$ref": "#/components/schemas/FixSuggestion"
+            }
+          },
+          "spaWarning": {
+            "type": "boolean",
+            "description": "Present and true if the page appears to be a client-side rendered SPA (React, Next.js client-only, Vue, etc.) with little server-rendered HTML. Results may be incomplete for SPAs. Ensure server-side rendering or static HTML for accurate scores.",
+            "nullable": true
+          },
+          "scannedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp when the audit was performed."
+          },
+          "rateLimit": {
+            "$ref": "#/components/schemas/RateLimitInfo"
+          }
+        }
+      },
+      "CategoryScores": {
+        "type": "object",
+        "required": ["answerReadiness", "structure", "authoritySignals", "technicalGEO"],
+        "description": "AEO score broken down into four categories. Each is a normalized 0–100 score representing that category's contribution.",
+        "properties": {
+          "answerReadiness": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "How well the content is structured for AI systems to extract direct answers. Measures: answer capsules, FAQ sections, content front-loading, readability."
+          },
+          "structure": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Semantic HTML structure quality. Measures: header hierarchy, section lengths, lists and tables."
+          },
+          "authoritySignals": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Credibility signals that AI citation systems use to assess trustworthiness. Measures: statistics density, source citations."
+          },
+          "technicalGEO": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Technical crawlability and machine-readable metadata. Measures: schema markup (JSON-LD), meta tags, AI bot access in robots.txt."
+          }
+        }
+      },
+      "FactorResult": {
+        "type": "object",
+        "required": ["id", "name", "score", "max", "status", "details"],
+        "description": "Result for a single AEO factor. The 12 factors cover header hierarchy, answer capsules, section lengths, FAQ sections, statistics density, source citations, schema markup, meta tags, content front-loading, AI bot access, readability, and lists/tables.",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12,
+            "description": "Factor ID (1–12)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable factor name.",
+            "examples": [
+              "Header Hierarchy",
+              "Answer Capsules",
+              "Section Lengths",
+              "FAQ Sections",
+              "Statistics Density",
+              "Source Citations",
+              "Schema Markup (JSON-LD)",
+              "Meta Tags",
+              "Content Front-Loading",
+              "AI Bot Access",
+              "Readability",
+              "Lists and Tables"
+            ]
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Points earned for this factor."
+          },
+          "max": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Maximum possible points for this factor. The 12 factors sum to 100."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pass", "fail", "warn"],
+            "description": "pass = factor is well-optimized. fail = factor is missing or broken. warn = factor is partially implemented."
+          },
+          "details": {
+            "type": "string",
+            "description": "Human-readable explanation of the finding for this factor."
+          }
+        }
+      },
+      "FixSuggestion": {
+        "type": "object",
+        "required": ["factorId", "factorName", "impact", "instruction"],
+        "description": "A prioritized fix for a failing or warning AEO factor. The instruction explains what to do; codeBlock (when present) contains the exact code to paste into the site.",
+        "properties": {
+          "factorId": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12,
+            "description": "ID of the failing factor this fix addresses."
+          },
+          "factorName": {
+            "type": "string",
+            "description": "Human-readable name of the failing factor."
+          },
+          "impact": {
+            "type": "string",
+            "enum": ["High", "Medium", "Low"],
+            "description": "Estimated impact on AEO score if this fix is applied. High impact fixes should be addressed first."
+          },
+          "instruction": {
+            "type": "string",
+            "description": "Plain-language explanation of what to fix and how."
+          },
+          "codeBlock": {
+            "type": "string",
+            "nullable": true,
+            "description": "Ready-to-paste code snippet (JSON-LD schema markup, HTML meta tags, robots.txt directives, etc.). Present for most technical fixes; absent for content-only recommendations."
+          }
+        }
+      },
+      "RateLimitInfo": {
+        "type": "object",
+        "required": ["remaining", "limit", "resetAt"],
+        "description": "Current rate limit status for your API key. Check remaining before making batch requests.",
+        "properties": {
+          "remaining": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of requests remaining today (UTC day)."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Total daily request limit for your plan. Starter: 100. Pro: 500. Agency: 2000."
+          },
+          "resetAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 timestamp when the daily limit resets. Always midnight UTC."
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": ["code", "message"],
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "unauthorized",
+                  "invalid_body",
+                  "invalid_url",
+                  "fetch_failed",
+                  "fetch_timeout",
+                  "rate_limited",
+                  "score_failed"
+                ],
+                "description": "Machine-readable error code."
+              },
+              "message": {
+                "type": "string",
+                "description": "Human-readable error message explaining the failure and how to fix it."
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Audit",
+      "description": "AEO audit operations. Run an audit to get a 0–100 AI citation readiness score, 12-factor analysis, and fix suggestions for any public URL."
+    }
+  ],
+  "externalDocs": {
+    "description": "Full API documentation",
+    "url": "https://webmole.ai/docs"
+  }
+}

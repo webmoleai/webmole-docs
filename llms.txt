@@ -1,0 +1,51 @@
+# WebMole
+
+> WebMole monitors where your brand appears in AI search — ChatGPT, Perplexity, Gemini, Claude — and tells you exactly how to fix it. The only self-serve AEO API under $100/mo.
+
+## API
+
+- [API Reference](https://webmole.ai/docs): REST API for programmatic AEO audits. POST a URL, get score + fixes as JSON.
+- [Quickstart](https://webmole.ai/guides/aeo-api-quickstart): First audit in 60 seconds with curl/JS/Python.
+- [For Developers](https://webmole.ai/for/developers): API overview, rate limits, authentication, use cases.
+- [OpenAPI Spec](https://webmole.ai/api/v1/openapi.json): Machine-readable OpenAPI 3.1 spec.
+
+## Guides
+
+- [What is AEO?](https://webmole.ai/learn/what-is-aeo): Answer Engine Optimization fundamentals and why it matters.
+- [What is GEO?](https://webmole.ai/learn/what-is-geo): Generative Engine Optimization guide and tactics.
+- [How to Appear in ChatGPT](https://webmole.ai/guides/how-to-appear-in-chatgpt): 9 tactics that work.
+- [How to Appear in Perplexity](https://webmole.ai/guides/how-to-appear-in-perplexity): Perplexity-specific optimization.
+- [JSON-LD for AEO](https://webmole.ai/guides/json-ld-for-aeo): Schema markup that AI engines actually use.
+
+## Tools
+
+- [Free Audit](https://webmole.ai/free-audit): Instant AEO score, no signup required.
+- [AI Visibility Checker](https://webmole.ai/tools/ai-visibility-checker): Check how you appear in AI search.
+- [JSON-LD Generator](https://webmole.ai/tools/json-ld-generator): Generate schema markup for FAQPage, HowTo, Organization.
+- [CLI](https://www.npmjs.com/package/@webmole/cli): `npm install -g @webmole/cli` — audit from terminal or CI.
+
+## For Teams
+
+- [For Developers](https://webmole.ai/for/developers): API docs, CLI, CI/CD integration.
+- [For Agencies](https://webmole.ai/for/agencies): Multi-client monitoring, white-label reports, bulk audits.
+- [For SaaS](https://webmole.ai/for/saas): AI search optimization for SaaS companies.
+
+## Comparisons
+
+- [WebMole vs Otterly](https://webmole.ai/compare/webmole-vs-otterly): Side-by-side feature and price comparison.
+- [WebMole vs Peec](https://webmole.ai/alternatives/peec): Why WebMole at $29 vs Peec at €89.
+- [WebMole vs Profound](https://webmole.ai/alternatives/profound): Self-serve vs enterprise.
+- [AEO Tool Alternatives](https://webmole.ai/alternatives): Full comparison of AEO monitoring tools.
+
+## Optional
+
+- [Pricing](https://webmole.ai/#pricing): Starter $29/mo (100 API req/day), Pro $49/mo (500/day), Agency $99/mo (2,000/day). API included on all paid plans.
+- [Dashboard](https://webmole.ai/dashboard): Monitor citations, track score over time, compare competitors.
+- [Blog](https://webmole.ai/blog): AEO research, tactics, and case studies.
+- [Contact](https://webmole.ai/contact): support@webmole.ai
+
+## Agent Integration
+
+- [agents.json](https://webmole.ai/.well-known/agents.json): Structured agent capability manifest.
+- [AGENTS.md](https://github.com/linesatuni/webmole/blob/main/AGENTS.md): How AI coding agents should use this repo and API.
+- [Full context](https://webmole.ai/llms-full.txt): Complete product docs in one file for LLM context loading.
